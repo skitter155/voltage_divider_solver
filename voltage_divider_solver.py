@@ -5,7 +5,7 @@
 #
 # PURPOSE:
 #   Determine the best combination of standard E-Series resistors
-#   to create a voltage divider with a particular ratio Vin/Vout.
+#   to create a voltage divider with a particular ratio Vout/Vin.
 #   
 #   Normally, one must choose one of the resistor's values to calculate
 #   the other. This approach will generally yield a value not belonging

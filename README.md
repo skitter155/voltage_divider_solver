@@ -11,3 +11,5 @@ Details on the usage head the .py file, but the short of it is:
   3. This program optimizes both variables (R1 and R2) to get as close to the desired Vout/Vin ratio as possible
 
 Use to your hearts content. Don't kill anyone though. Voltage dividers are meant for good.
+
+!! IMPORTANT !! : I'm a python beginner. Proceed with caution.

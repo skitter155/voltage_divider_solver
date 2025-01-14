@@ -26,17 +26,39 @@ seriesE24 = [1.0, 1.1, 1.2, 1.3, 1.5, 1.6,
              3.3, 3.6, 3.9, 4.3, 4.7, 5.1,
              5.6, 6.2, 6.8, 7.5, 8.2, 9.1]
 
+seriesE48 = [1.00, 1.05, 1.10, 1.15, 1.21, 1.27,
+             1.33, 1.40, 1.47, 1.54, 1.62, 1.69,
+             1.78, 1.87, 1.96, 2.05, 2.15, 2.26,
+             2.37, 2.49, 2.61, 2.74, 2.87, 3.01,
+             3.16, 3.32, 3.48, 3.65, 3.83, 4.02,
+             4.22, 4.42, 4.64, 4.87, 5.11, 5.36,
+             5.62, 5.90, 6.19, 6.49, 6.81, 7.15,
+             7.50, 7.87, 8.25, 8.66, 9.09, 9.53]
 
-def number_input_interpreter(i):  # parse user input for choice of E-Series
-    interpretOne = [1, "1", "[1]", "1.", "one", "One", "ONE"]
-    interpretTwo = [2, "2", "[2]", "2.", "two", "Two", "TWO"]
-    interpretThree = [3, "3", "[3]", "3.", "three", "Three", "THREE"]
-    interpretNumber = [interpretOne, interpretTwo, interpretThree]
-    for internalList in interpretNumber:
-        for y in internalList:
-            if i == y:
-                return internalList[0]
-    return -1
+seriesE96 = [1.00, 1.02, 1.05, 1.07, 1.10, 1.13,
+             1.15, 1.18, 1.21, 1.24, 1.27, 1.30,
+             1.33, 1.37, 1.40, 1.43, 1.47, 1.50,
+             1.54, 1.58, 1.62, 1.65, 1.69, 1.74,
+             1.78, 1.82, 1.87, 1.91, 1.96, 2.00,
+             2.05, 2.10, 2.16, 2.21, 2.26, 2.32,
+             2.37, 2.43, 2.49, 2.55, 2.61, 2.67,
+             2.74, 2.80, 2.87, 2.94, 3.01, 3.09,
+             3.16, 3.24, 3.32, 3.40, 3.48, 3.57,
+             3.65, 3.74, 3.83, 3.92, 4.02, 4.12,
+             4.22, 4.32, 4.42, 4.53, 4.64, 4.75,
+             4.87, 4.99, 5.11, 5.23, 5.36, 5.49,
+             5.62, 5.76, 5.90, 6.04, 6.19, 6.34,
+             6.49, 6.65, 6.81, 6.98, 7.15, 7.32,
+             7.50, 7.68, 7.87, 8.06, 8.25, 8.45,
+             8.66, 8.87, 9.09, 9.31, 9.53, 9.76]
+
+series_set = {
+    "E6" : seriesE6,
+    "E12": seriesE12,
+    "E24": seriesE24,
+    "E48": seriesE48,
+    "E96": seriesE96
+}
 
 
 def prompt_ratio():
@@ -94,20 +116,22 @@ def init():
     global error_thres
     
     # Get user's choice of E-Series
+    e_series_choice = []
     while not e_series_choice:
-        print("\nChoose E-Series:\n[0]:E6  [1]:E12  [2]:E24")
-        e_series_choice_num = number_input_interpreter(input("[INT] >"))
-        e_series_choice = (seriesE6, seriesE12, seriesE24)[e_series_choice_num]
+        print("\nChoose E-Series:")
+        print('  '.join( [f"[{i}]:{x}" for i, x in enumerate( series_set.keys() ) ]) )
+        e_series_choice_num = int(input("[INT] >"))
 
         # Check that input is valid
-        if not e_series_choice:
+        if e_series_choice_num not in range( 0, len(series_set) ):
             print("Invalid input, try again...")
             continue
+        e_series_choice = list(series_set.items())[e_series_choice_num]
             
         # Print the E-Series values chosen
-        print( ("E6", "E12", "E24")[e_series_choice_num] + ":" )
-        for index, item in enumerate(e_series_choice):
-            print(str(item), end="\t\t")
+        print( e_series_choice[0] + ":" )
+        for index, item in enumerate(e_series_choice[1]):
+            print(f"{item:<{max([ len((str(x))) for x in e_series_choice[1] ])}}", end="\t\t")
             # Print in 3 columns (mostly because I have a chart on my wall with 3 columns)
             if (index + 1) % 3 == 0:
                 print()
@@ -132,8 +156,8 @@ def comp():
 
     # Iterate through combinations of E-Series values
     for (r1_mult, r2_mult) in ( (10*r1_order_adj, 1), (1*r1_order_adj, 1), (1*r1_order_adj, 10) ):
-        for r1_test in e_series_choice:
-            for r2_test in e_series_choice:
+        for r1_test in e_series_choice[1]:
+            for r2_test in e_series_choice[1]:
                 # Calculate ratio given current E-Series values
                 testRatio = ( r2_test * r2_mult) / \
                             ( r1_mult * r1_test + r2_mult * r2_test )

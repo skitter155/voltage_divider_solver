@@ -61,7 +61,11 @@ series_set = {
 }
 
 
-def prompt_ratio():
+def prompt_ratio() -> float:
+    """
+    Prompts user for a valid Vout/in ratio
+    :return: validated float in interval (0,1)
+    """
     ratio_input = -1
     while ratio_input == -1:  # Get desired decimal ratio
         print("Choose a decimal ratio [ R2 / (R1+R2) ]")  # Function will use Volt Div Formula
@@ -87,10 +91,14 @@ def prompt_ratio():
         return ratio_input
 
 
-def prompt_error_thres():
+def prompt_error_thres() -> float:
+    """
+    Prompts user for a %ERROR excursion threshold
+    :return: validated float in range [0, inf)
+    """
     user_error_thres = -1
     while user_error_thres == -1:  # Get permissible percent error
-        print("Choose a percent error threshold (%):")
+        print("Choose a percent error excursion threshold (%):")
         strUserPercentErrorThreshold = input("[FLOAT] >")
         try:
             user_error_thres = float(strUserPercentErrorThreshold)
@@ -104,21 +112,16 @@ def prompt_error_thres():
         return user_error_thres
 
 
-# Globals
-e_series_choice = []
-goal_ratio      = -1
-error_thres     = -1
-
-
-def init():
-    global e_series_choice
-    global goal_ratio
-    global error_thres
-    
+def init() -> tuple[list, float, float]:
+    """
+    Gets initialization values
+    :return: e_series_choice:key-val pair, goal-ratio:float, error_thres:float
+    """
     # Get user's choice of E-Series
     e_series_choice = []
     while not e_series_choice:
         print("\nChoose E-Series:")
+        # List of E series from keys (format: [0]:E6  [...<etc>)
         print('  '.join( [f"[{i}]:{x}" for i, x in enumerate( series_set.keys() ) ]) )
         e_series_choice_num = int(input("[INT] >"))
 
@@ -131,6 +134,7 @@ def init():
         # Print the E-Series values chosen
         print( e_series_choice[0] + ":" )
         for index, item in enumerate(e_series_choice[1]):
+            # Print equally-spaced values
             print(f"{item:<{max([ len((str(x))) for x in e_series_choice[1] ])}}", end="\t\t")
             # Print in 3 columns (mostly because I have a chart on my wall with 3 columns)
             if (index + 1) % 3 == 0:
@@ -140,12 +144,17 @@ def init():
     goal_ratio  = prompt_ratio()
     error_thres = prompt_error_thres()
 
+    return e_series_choice, goal_ratio, error_thres
 
-def comp():
-    global e_series_choice
-    global goal_ratio
-    global error_thres
-    
+
+def comp(goal_ratio: float, error_thres: float, e_series: list) -> tuple[list[list[float]], tuple[float, float]]:
+    """
+    Computes ideal values of R1, R2
+    :param error_thres: float - %Error threshold to include result
+    :param goal_ratio: float - ratio to pursue
+    :param e_series:  list - e-series values to optimize through
+    :return: calc_results:list[list[float]], (start_time:float, end_time:float)
+    """
     start_time = time.time()  # Timed for gratification
     calc_results = []
 
@@ -156,8 +165,8 @@ def comp():
 
     # Iterate through combinations of E-Series values
     for (r1_mult, r2_mult) in ( (10*r1_order_adj, 1), (1*r1_order_adj, 1), (1*r1_order_adj, 10) ):
-        for r1_test in e_series_choice[1]:
-            for r2_test in e_series_choice[1]:
+        for r1_test in e_series:
+            for r2_test in e_series:
                 # Calculate ratio given current E-Series values
                 testRatio = ( r2_test * r2_mult) / \
                             ( r1_mult * r1_test + r2_mult * r2_test )
@@ -176,7 +185,13 @@ def comp():
     return calc_results, (start_time, end_time)
 
 
-def print_results(calc_results, calc_times):
+def print_results(goal_ratio: float, calc_results: list, calc_times: tuple) -> None:
+    """
+    Formats and prints calculated results
+    :param goal_ratio: float
+    :param calc_results: list of lists of floats
+    :param calc_times: tuple - (start_time: float, end_time: float)
+    """
     # Format results
     resultMaxLen = [0] * len(calc_results[0])
     for result in calc_results:
@@ -195,8 +210,11 @@ def print_results(calc_results, calc_times):
     print('\n' + "Execution time: " + str(round(executionTimeMilliseconds, 4) ) + 'ms')
 
 
-def prompt_new_tolerance():
-    global error_thres
+def prompt_new_tolerance() -> bool:
+    """
+    Prompts user to try a new tolerance/%ERROR excursion threshold
+    :return: bool - Does user want to try one?
+    """
     # Allow user to try different tolerance without restarting
     tryNewTolerance = 'invalid'
     while tryNewTolerance == 'invalid':
@@ -209,7 +227,6 @@ def prompt_new_tolerance():
         elif tryNewTolerance in ['n', 'N', 'no', 'No', 'NO']:
             return False
         elif tryNewTolerance in ['y', 'Y', 'yes', 'Yes', 'YES']:
-            error_thres = prompt_error_thres()
             return True
         else:
             print("Not understood")
@@ -217,24 +234,24 @@ def prompt_new_tolerance():
 
 
 def main():
-    global e_series_choice
-    global goal_ratio
-    global error_thres
     # Run init once
-    init()
+    (e_series_choice, goal_ratio, error_thres) = init()
     # Check init() results
     for x in (e_series_choice, goal_ratio, error_thres):
         if x == -1:
             print(f"Variable value invalid: {x}")
     # Run comp until user done
-    run_comp = True
-    while run_comp:
-        comp_results, times = comp()
+    while True:
+        # init returns key-val pair for e_series, comp takes just values
+        comp_results, times = comp(goal_ratio, error_thres, e_series_choice[1])
         if not comp_results:
             print("No results found.")
         else:
-            print_results(comp_results, times)
-        run_comp = prompt_new_tolerance()
+            print_results(goal_ratio, comp_results, times)
+        if prompt_new_tolerance():
+            error_thres = prompt_error_thres()
+        else:
+            break
    
     print("\nCompleted. Rerunning... (Ctrl+C to quit at any time)")
     print("==================================================")

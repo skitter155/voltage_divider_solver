@@ -1,7 +1,7 @@
 This is a rework of 'Resistor ratio matcher.py' - the initial iteration of 'resistor_ratio_match_v2.py'. I reworked it to submit as an assignment for a class requiring proof of basic Python knowledge.
 As for why I chose the initial over the (possibly) improved v2, this version:
   - Existed within one file (the code needed to be copied to a text document for submission)
-  - I honestly forgot two versions existed
+  - I honestly forgot two versions existed.
 So here I am, a couple hours of work later, and satisfied with the performance of the reworked v1.
 
 Details on the usage head the code, but the short of it is:
